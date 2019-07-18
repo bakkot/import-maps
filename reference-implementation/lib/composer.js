@@ -2,18 +2,42 @@
 
 exports.appendMap = (baseMap, newMap) => {
   let resultMap = {
-    imports: Object.fromEntries([
-      ...Object.entries(baseMap.imports).map(([moduleSpecifier, fallbacks]) =>
-        [moduleSpecifier, [...fallbacks]]
+    imports: joinHelper(baseMap.imports, newMap.imports, [baseMap.imports]),
+    scopes: Object.fromEntries([
+      ...Object.entries(baseMap.scopes).map(([scopePrefix, scopeMapping]) =>
+        [scopePrefix, Object.fromEntries(simpleMappingCopy(scopeMapping))]
       ),
-      ...Object.entries(newMap.imports).map(([moduleSpecifier, fallbacks]) =>
-        [moduleSpecifier, fallbacks.flatMap(fallback => applyCascadeWithContexts(fallback, [baseMap.imports]))]
+      ...Object.entries(newMap.scopes).map(([scopePrefix, scopeMapping]) =>
+        [scopePrefix, joinHelper(scopePrefix in baseMap.scopes ? baseMap.scopes[scopePrefix] : {}, scopeMapping, findApplicableMapContexts(scopePrefix, baseMap))]
       ),
     ]),
-    scopes: Object.assign({}, baseMap.scopes),
   };
   return resultMap;
 };
+
+function simpleMappingCopy(mapping) {
+  return Object.entries(mapping).map(([moduleSpecifier, fallbacks]) => [moduleSpecifier, [...fallbacks]]);
+}
+
+function joinHelper(baseMapping, newMapping, applicableContexts) {
+  return Object.fromEntries([
+    // NOTE: we leave duplicate entries in here and rely on Object.fromEntries using a last-wins approach
+    ...simpleMappingCopy(baseMapping),
+    ...Object.entries(newMapping).map(([moduleSpecifier, fallbacks]) =>
+      [moduleSpecifier, fallbacks.flatMap(fallback => applyCascadeWithContexts(fallback, applicableContexts))]
+    ),
+  ]);
+}
+
+function findApplicableMapContexts(urlOrPrefix, map) {
+  let applicableScopes = Object.keys(map.scopes).filter(scopePrefix =>
+    scopePrefix === urlOrPrefix || (scopePrefix.endsWith('/') && urlOrPrefix.startsWith(scopePrefix))
+  );
+  return [
+    map.imports,
+    ...applicableScopes.map(scope => map.scopes[scope])
+  ];
+}
 
 
 // string -> Array<Map<string, Array<string>>> -> Array<string>

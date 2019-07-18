@@ -165,7 +165,7 @@ describe('Composition', () => {
       {
         imports: { 'https://a/': 'https://b/' },
         scopes: {
-          'https://example.com/x/y': { 'https://c/': 'https://d/' },
+          'https://example.com/x/y/': { 'https://c/': 'https://d/' },
           'https://example.com/x/y/z': { 'https://e/': 'https://f/' },
         },
       },
@@ -181,16 +181,16 @@ describe('Composition', () => {
       },
     ])).toStrictEqual({
       imports: {
-        'https://a/': 'https://b/',
-        'https://m/': 'https://n/',
+        'https://a/': ['https://b/'],
+        'https://m/': ['https://n/'],
       },
       scopes: {
-        'https://example.com/x/y': { 'https://c/': 'https://d/' },
+        'https://example.com/x/y/': { 'https://c/': ['https://d/'] },
         'https://example.com/x/y/z': {
-          'https://e/': 'https://f/',
-          'https://g/': 'https://b/',
-          'https://h/': 'https://d/',
-          'https://i/': 'https://f/',
+          'https://e/': ['https://f/'],
+          'https://g/': ['https://b/'],
+          'https://h/': ['https://d/'],
+          'https://i/': ['https://f/'],
         },
       },
     });
