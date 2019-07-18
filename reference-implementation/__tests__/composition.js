@@ -21,6 +21,46 @@ function composeMaps(mapLikes) {
 }
 
 describe('Composition', () => {
+  it('should compose with the empty map on the left', () => {
+    let map = {
+      imports: { 'https://a': 'https://b' },
+      scopes: {
+        'https://c': { 'https://d': 'https://e' },
+      },
+    };
+
+    let resultMap = appendMap(
+      parseFromString("{}", mapBaseURL),
+      parseFromString(JSON.stringify(map), mapBaseURL),
+    );
+    expect(resultMap).toStrictEqual(map);
+    expect(resultMap.imports).not.toBe(map.imports);
+    expect(resultMap.scopes).not.toBe(map.scopes);
+    Object.entries(resultMap.scopes).forEach(([k, v]) => {
+      expect(v).not.toBe(map.scopes[k]);
+    });
+  });
+
+  it('should compose with the empty map on the right', () => {
+    let map = {
+      imports: { 'https://a': 'https://b' },
+      scopes: {
+        'https://c': { 'https://d': 'https://e' },
+      },
+    };
+
+    let resultMap = appendMap(
+      parseFromString(JSON.stringify(map), mapBaseURL),
+      parseFromString("{}", mapBaseURL),
+    );
+    expect(resultMap).toStrictEqual(map);
+    expect(resultMap.imports).not.toBe(map.imports);
+    expect(resultMap.scopes).not.toBe(map.scopes);
+    Object.entries(resultMap.scopes).forEach(([k, v]) => {
+      expect(v).not.toBe(map.scopes[k]);
+    });
+  });
+
   it('should compose maps that do not interact in any way', () => {
     expect(composeMaps([
       {
@@ -120,10 +160,10 @@ describe('Composition', () => {
       scopes: {
         '/x/y': { 'https://c': 'https://d' },
         '/x/y/z': {
-            'https://e': 'https://f',
-            'https://g': 'https://b',
-            'https://h': 'https://d',
-            'https://i': 'https://f',
+          'https://e': 'https://f',
+          'https://g': 'https://b',
+          'https://h': 'https://d',
+          'https://i': 'https://f',
         },
       },
     });
