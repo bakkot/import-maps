@@ -133,21 +133,33 @@ describe('Composition', () => {
   it('should compose maps that are using the virtualisation patterns we expect to see in the wild', () => {
     expect(composeMaps([
       {
-        imports: { 'std:built-in': 'https://built-in-enhancement-1/' },
+        imports: {
+          'std:built-in': 'https://built-in-enhancement-1/',
+        },
         scopes: {
-          'https://built-in-enhancement-1/': { 'std:built-in': 'std:built-in' },
+          'https://built-in-enhancement-1/': {
+            'std:built-in': 'std:built-in',
+          },
         },
       },
       {
-        imports: { 'std:built-in': 'https://built-in-enhancement-2/' },
+        imports: {
+          'std:built-in': 'https://built-in-enhancement-2/',
+        },
         scopes: {
-          'https://built-in-enhancement-2/': { 'std:built-in': 'std:built-in' },
+          'https://built-in-enhancement-2/': {
+            'std:built-in': 'std:built-in',
+          },
         },
       },
       {
-        imports: { 'std:built-in': 'https://built-in-enhancement-3/' },
+        imports: {
+          'std:built-in': 'https://built-in-enhancement-3/',
+        },
         scopes: {
-          'https://built-in-enhancement-3/': { 'std:built-in': 'std:built-in' },
+          'https://built-in-enhancement-3/': {
+            'std:built-in': 'std:built-in',
+          },
         },
       },
     ])).toStrictEqual({
@@ -192,6 +204,36 @@ describe('Composition', () => {
           'https://h/': ['https://d/'],
           'https://i/': ['https://f/'],
         },
+      },
+    });
+  });
+
+  it('should resolve unscoped things through all of earlier maps\' scopes', () => {
+    expect(composeMaps([
+      {
+        imports: {},
+        scopes: {
+          'https://a/': {
+            'https://b/': 'https://c/',
+            'https://d/': 'https://e/'
+          }
+        }
+      },
+      {
+        imports: {
+          'https://d/': 'https://b/',
+        },
+        scopes: {},
+      },
+    ])).toStrictEqual({
+      imports: {
+        'https://d/': ['https://b/'],
+      },
+      scopes: {
+        'https://a/': {
+          'https://b/': ['https://c/'],
+          'https://d/': ['https://e/'],
+        }
       },
     });
   });
