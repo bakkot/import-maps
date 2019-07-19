@@ -232,7 +232,7 @@ describe('Composition', () => {
       scopes: {
         'https://a/': {
           'https://b/': ['https://c/'],
-          'https://d/': ['https://e/'],
+          'https://d/': ['https://c/'],
         }
       },
     });
