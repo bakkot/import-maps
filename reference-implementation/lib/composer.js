@@ -1,15 +1,21 @@
 'use strict';
 
 exports.appendMap = (baseMap, newMap) => {
-  //let expandedBaseScopes = expandScopes(baseMap.imports, Object.assign(neuter(newMap.scopes), baseMap.scopes));
-  //let expandedNewScopes = expandScopes(newMap.imports, Object.assign(neuter(baseMap.scopes), newMap.scopes));
+  let expandedBaseScopes = expandScopes(baseMap.imports, Object.assign(neuter(newMap.scopes), baseMap.scopes));
+  let expandedNewScopes = expandScopes(newMap.imports, Object.assign(neuter(baseMap.scopes), newMap.scopes));
+
+  console.log("expandedBaseScopes", JSON.parse(JSON.stringify(expandedBaseScopes)));
+  console.log("expandedNewScopes", JSON.parse(JSON.stringify(expandedNewScopes)));
 
   let resultMap = {
     imports: joinHelper([baseMap.imports], newMap.imports),
     scopes: Object.fromEntries([
-      ...Object.entries(baseMap.scopes),
-      ...Object.entries(newMap.scopes).map(([scopePrefix, scopeMapping]) => {
-        return [scopePrefix, joinHelper([baseMap.imports, ...scopesMatchingPrefix(scopePrefix, baseMap.scopes)], scopeMapping)]
+      ...Object.entries(expandedNewScopes).map(([scopePrefix, scopeMapping]) => {
+        console.log("--");
+        console.log("scopePrefix", scopePrefix);
+        console.log("expandedBaseScopes[scopePrefix]", JSON.parse(JSON.stringify(expandedBaseScopes[scopePrefix])));
+        console.log("joinHelper result", JSON.parse(JSON.stringify(joinHelper([expandedBaseScopes[scopePrefix]], scopeMapping))));
+        return [scopePrefix, joinHelper([expandedBaseScopes[scopePrefix]], scopeMapping)]
       }),
     ]),
   };
@@ -44,9 +50,9 @@ function scopesMatchingPrefix(prefix, scopesObject) {
   ).sort(shorterLengthThenCodeUnitOrder).map(s => scopesObject[s]);
 }
 
-function expandScopes(map) {
-  return Object.fromEntries(Object.entries(map.scopes).map(([scopePrefix]) =>
-    [scopePrefix, Object.assign({}, map.imports, ...scopesMatchingPrefix(scopePrefix, map.scopes))]
+function expandScopes(globalMapping, scopes) {
+  return Object.fromEntries(Object.entries(scopes).map(([scopePrefix]) =>
+    [scopePrefix, Object.assign({}, globalMapping, ...scopesMatchingPrefix(scopePrefix, scopes))]
   ));
 }
 

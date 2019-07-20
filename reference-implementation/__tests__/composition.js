@@ -151,22 +151,22 @@ describe('Composition', () => {
           },
         },
       },
-      {
-        imports: {
-          'std:built-in': 'https://built-in-enhancement-3/',
-        },
-        scopes: {
-          'https://built-in-enhancement-3/': {
-            'std:built-in': 'std:built-in',
-          },
-        },
-      },
+      //{
+      //  imports: {
+      //    'std:built-in': 'https://built-in-enhancement-3/',
+      //  },
+      //  scopes: {
+      //    'https://built-in-enhancement-3/': {
+      //      'std:built-in': 'std:built-in',
+      //    },
+      //  },
+      //},
     ])).toStrictEqual({
-      imports: { 'std:built-in': ['https://built-in-enhancement-3/'] },
+      imports: { 'std:built-in': ['https://built-in-enhancement-2/'] },
       scopes: {
         'https://built-in-enhancement-1/': { 'std:built-in': ['std:built-in'] },
         'https://built-in-enhancement-2/': { 'std:built-in': ['https://built-in-enhancement-1/'] },
-        'https://built-in-enhancement-3/': { 'std:built-in': ['https://built-in-enhancement-2/'] },
+        //'https://built-in-enhancement-3/': { 'std:built-in': ['https://built-in-enhancement-2/'] },
       },
     });
   });
