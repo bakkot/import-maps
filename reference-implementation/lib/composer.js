@@ -1,44 +1,33 @@
 'use strict';
 
 exports.appendMap = (baseMap, newMap) => {
+  //let expandedBaseScopes = expandScopes(baseMap.imports, Object.assign(neuter(newMap.scopes), baseMap.scopes));
+  //let expandedNewScopes = expandScopes(newMap.imports, Object.assign(neuter(baseMap.scopes), newMap.scopes));
+
   let resultMap = {
     imports: joinHelper([baseMap.imports], newMap.imports),
     scopes: Object.fromEntries([
-      ...Object.entries(baseMap.scopes).map(([scopePrefix, scopeMapping]) =>
-        [scopePrefix, Object.fromEntries(simpleMappingCopy(scopeMapping))]
-      ),
-      ...Object.entries(newMap.scopes).map(([scopePrefix, scopeMapping]) =>
-        [scopePrefix, joinHelper(findApplicableMapContexts(scopePrefix, baseMap), scopeMapping)]
-      ),
+      ...Object.entries(baseMap.scopes),
+      ...Object.entries(newMap.scopes).map(([scopePrefix, scopeMapping]) => {
+        return [scopePrefix, joinHelper([baseMap.imports, ...scopesMatchingPrefix(scopePrefix, baseMap.scopes)], scopeMapping)]
+      }),
     ]),
   };
   return resultMap;
 };
 
-function simpleMappingCopy(mapping) {
-  return Object.entries(mapping).map(([moduleSpecifier, fallbacks]) => [moduleSpecifier, [...fallbacks]]);
+function neuter(obj) {
+  return Object.fromEntries(Object.entries(obj).map(([k]) => [k, {}]));
 }
 
 function joinHelper(applicableContexts, newMapping) {
   return Object.fromEntries([
-    // NOTE: we leave duplicate entries in here and rely on Object.fromEntries using a last-wins approach
     ...applicableContexts.flatMap(x => Object.entries(x)).map(([moduleSpecifier, fallbacks]) => [moduleSpecifier, [...fallbacks]]),
     ...Object.entries(newMapping).map(([moduleSpecifier, fallbacks]) =>
       [moduleSpecifier, fallbacks.flatMap(fallback => applyCascadeWithContexts(fallback, applicableContexts))]
     ),
   ]);
 }
-
-function findApplicableMapContexts(urlOrPrefix, map) {
-  let applicableScopes = Object.keys(map.scopes).filter(scopePrefix =>
-    scopePrefix === urlOrPrefix || (scopePrefix.endsWith('/') && urlOrPrefix.startsWith(scopePrefix))
-  );
-  return [
-    map.imports,
-    ...applicableScopes.sort(longerLengthThenCodeUnitOrder).map(scope => map.scopes[scope]),
-  ];
-}
-
 
 // string -> Array<Map<string, Array<string>>> -> Array<string>
 function applyCascadeWithContexts(moduleSpecifier, applicableMapContexts) {
@@ -49,8 +38,20 @@ function applyCascadeWithContexts(moduleSpecifier, applicableMapContexts) {
   return moduleSpecifier in head ? head[moduleSpecifier] : applyCascadeWithContexts(moduleSpecifier, tail);
 }
 
-function longerLengthThenCodeUnitOrder(a, b) {
-  return compare(b.length, a.length) || compare(a, b);
+function scopesMatchingPrefix(prefix, scopesObject) {
+  return Object.keys(scopesObject).filter(scopePrefix =>
+    scopePrefix === prefix || (scopePrefix.endsWith('/') && prefix.startsWith(scopePrefix))
+  ).sort(shorterLengthThenCodeUnitOrder).map(s => scopesObject[s]);
+}
+
+function expandScopes(map) {
+  return Object.fromEntries(Object.entries(map.scopes).map(([scopePrefix]) =>
+    [scopePrefix, Object.assign({}, map.imports, ...scopesMatchingPrefix(scopePrefix, map.scopes))]
+  ));
+}
+
+function shorterLengthThenCodeUnitOrder(a, b) {
+  return compare(a.length, b.length) || compare(a, b);
 }
 
 function compare(a, b) {

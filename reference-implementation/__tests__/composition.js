@@ -11,8 +11,7 @@ function composeMaps(mapLikes) {
   if (!Array.isArray(mapLikes) || mapLikes.length < 1) {
     throw new Error('composeMaps must be given a non-empty array of mapLikes');
   }
-  let map;
-  map = parseFromString("{}", mapBaseURL);
+  let map = parseFromString(JSON.stringify(mapLikes.shift()), mapBaseURL);;
   for (const mapLike of mapLikes) {
     let newMap = parseFromString(JSON.stringify(mapLike), mapBaseURL);
     map = appendMap(map, newMap);
