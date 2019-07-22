@@ -151,22 +151,22 @@ describe('Composition', () => {
           },
         },
       },
-      //{
-      //  imports: {
-      //    'std:built-in': 'https://built-in-enhancement-3/',
-      //  },
-      //  scopes: {
-      //    'https://built-in-enhancement-3/': {
-      //      'std:built-in': 'std:built-in',
-      //    },
-      //  },
-      //},
+      {
+       imports: {
+         'std:built-in': 'https://built-in-enhancement-3/',
+       },
+       scopes: {
+         'https://built-in-enhancement-3/': {
+           'std:built-in': 'std:built-in',
+         },
+       },
+      },
     ])).toStrictEqual({
-      imports: { 'std:built-in': ['https://built-in-enhancement-2/'] },
+      imports: { 'std:built-in': ['https://built-in-enhancement-3/'] },
       scopes: {
         'https://built-in-enhancement-1/': { 'std:built-in': ['std:built-in'] },
         'https://built-in-enhancement-2/': { 'std:built-in': ['https://built-in-enhancement-1/'] },
-        //'https://built-in-enhancement-3/': { 'std:built-in': ['https://built-in-enhancement-2/'] },
+        'https://built-in-enhancement-3/': { 'std:built-in': ['https://built-in-enhancement-2/'] },
       },
     });
   });
@@ -207,6 +207,38 @@ describe('Composition', () => {
     });
   });
 
+  it('should not clobber earlier more-specific scopes with later less-specific scopes', () => {
+    expect(composeMaps([
+      {
+        imports: {},
+        scopes: {
+          'https://example.com/x/y/': { 'https://a/': 'https://b/' },
+          'https://example.com/x/y/z': { 'https://c/': 'https://d/' },
+        },
+      },
+      {
+        imports: {
+          'https://a/': 'https://e/'
+        },
+        scopes: {
+          'https://example.com/x/': {
+            'https://c/': 'https://f/',
+          },
+        },
+      },
+    ])).toStrictEqual({
+      imports: {
+        'https://a/': ['https://e/'],
+      },
+      scopes: {
+        'https://example.com/x/': { 'https://c/': ['https://f/'] },
+        'https://example.com/x/y/': { 'https://a/': ['https://b/'] },
+        'https://example.com/x/y/z': { 'https://c/': ['https://d/'] },
+      },
+    });
+  });
+
+  // this test should probably be deleted: its description is now wrong, and it's behavior is covered by the previous test
   it('should resolve unscoped things through all of earlier maps\' scopes', () => {
     expect(composeMaps([
       {
@@ -231,7 +263,7 @@ describe('Composition', () => {
       scopes: {
         'https://a/': {
           'https://b/': ['https://c/'],
-          'https://d/': ['https://c/'],
+          'https://d/': ['https://e/'],
         }
       },
     });
