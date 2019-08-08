@@ -289,6 +289,83 @@ describe('Composition', () => {
     });
   });
 
+  it('should compose package-prefixed things correctly', () => {
+    expect(composeMaps([
+      {
+        imports: {
+          'http://example.com/x/a.js': 'http://example.com/x/b.js'
+        },
+        scopes: {
+          'http://example.com/bar/': {
+            'http://example.com/x/a.js': 'http://example.com/x/c.js'
+          }
+        }
+      },
+      {
+        imports: {
+          'x/': 'http://example.com/x/'
+        },
+        scopes: {
+          'http://example.com/foo/': {
+            'y/': 'http://example.com/x/'
+          }
+        }
+      },
+      {
+        imports: {
+          'a.js': 'x/a.js'
+        },
+        scopes: {
+          'http://example.com/foo/': {
+            'a.js': 'y/a.js'
+          }
+        }
+      }
+    ])).toStrictEqual({
+      imports: {
+        'http://example.com/x/a.js': ['http://example.com/x/b.js'],
+        'x/': ['http://example.com/x/'],
+        'a.js': ['http://example.com/x/b.js']
+      },
+      scopes: {
+        'http://example.com/bar/': {
+          'http://example.com/x/a.js': ['http://example.com/x/c.js']
+        },
+        'http://example.com/foo/': {
+          'y/': ['http://example.com/x/'],
+          'a.js': ['http://example.com/x/b.js']
+        }
+      }
+    });
+  });
+
+  it('should do the thing', () => {
+    expect(composeMaps([
+      {
+        imports: {},
+        scopes: {
+          'https://example.com/x/y/': { 'https://a/': 'https://b/' }
+        }
+      },
+      {
+        imports: {
+          'https://x/': 'https://a/'
+        },
+        scopes: {}
+      }
+    ])).toStrictEqual({
+      imports: {
+        'https://x/': ['https://a/']
+      },
+      scopes: {
+        'https://example.com/x/y/': {
+          'https://x/': ['https://b/'],
+          'https://a/': ['https://b/']
+        },
+      }
+    });
+  });
+
   it('should compose according to the most specific applicable scope', () => {
     expect(composeMaps([
       {
