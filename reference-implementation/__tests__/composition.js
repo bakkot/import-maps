@@ -267,6 +267,28 @@ describe('Composition', () => {
     });
   });
 
+  it('should url normalize things which have composed into URLs', () => {
+    expect(composeMaps([
+      {
+        imports: {
+          'a/': 'https://example.com/x/'
+        },
+        scopes: {}
+      },
+      {
+        imports: {
+          'dot-test': 'a/測試'
+        }
+      }
+    ])).toStrictEqual({
+      imports: {
+        'a/': ['https://example.com/x/'],
+        'dot-test': ['https://example.com/x/%E6%B8%AC%E8%A9%A6']
+      },
+      scopes: {}
+    });
+  });
+
   it('should compose according to the most specific applicable scope', () => {
     expect(composeMaps([
       {
